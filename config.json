@@ -1,0 +1,12 @@
+{
+  "title": "KIMI.EXECUTE(ME);",
+  "subtitle": "kimi 娘 / world.execute(me);",
+  "duration": 212.0,
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "sample_rate": 44100,
+  "audio": "input/song.mp3",
+  "character_image": "input/kimi.png",
+  "lyrics": "input/lyrics.lrc"
+}

@@ -1,0 +1,11 @@
+__pycache__/
+.venv/
+.build/
+input/song.mp3
+input/song.wav
+input/kimi.png
+input/lyrics.lrc
+out/
+preview/
+*.pyc
+
