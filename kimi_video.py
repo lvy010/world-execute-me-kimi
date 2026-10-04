@@ -319,11 +319,14 @@ def ffmpeg_video(images: Iterable[Image.Image], fps: int, width: int, height: in
         raise SystemExit("找不到 ffmpeg。macOS 可执行：brew install ffmpeg")
     output.parent.mkdir(parents=True, exist_ok=True)
     video_args = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-f", "image2pipe", "-vcodec", "png", "-r", str(fps), "-i", "-"]
-    if audio and audio.exists():
+    has_audio = bool(audio and audio.exists())
+    if has_audio:
         video_args += ["-i", str(audio)]
     else:
         video_args += ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
-    video_args += ["-t", f"{duration:.3f}", "-map", "0:v:0", "-map", "1:a:0", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", str(output)]
+    # apad keeps a 211.9 s source from producing a 211.9 s delivery: the
+    # requested 3:32 canvas remains stable while a short track is padded.
+    video_args += ["-t", f"{duration:.3f}", "-map", "0:v:0", "-map", "1:a:0", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-af", "apad", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", str(output)]
     proc = subprocess.Popen(video_args, stdin=subprocess.PIPE)
     assert proc.stdin is not None
     try:
@@ -379,15 +382,21 @@ def main():
         check()
         return
     if args.command == "frame":
+        if args.width < 480 or args.height < 270:
+            raise SystemExit("当前布局的最小输出尺寸是 480x270；请提高 --width/--height。")
         args.output.parent.mkdir(parents=True, exist_ok=True)
         render_frame(max(0.0, min(CONFIG["duration"], args.time)), args.width, args.height, cues, character if character.exists() else None).save(args.output)
         print(args.output)
         return
     duration = float(args.seconds if args.seconds is not None else CONFIG["duration"])
+    if args.width < 480 or args.height < 270:
+        raise SystemExit("当前布局的最小输出尺寸是 480x270；请提高 --width/--height，或使用默认预览尺寸。")
     if args.command == "render" and args.audio is None:
         args.audio = ROOT / CONFIG["audio"]
     elif args.audio is not None and not args.audio.is_absolute():
         args.audio = ROOT / args.audio
+    if args.command == "render" and not args.audio.exists():
+        raise SystemExit(f"找不到歌曲：{args.audio}\n请把你有权使用的 MP3 放到 input/song.mp3，或使用 --audio 指定文件。")
     timestamps = (i / args.fps for i in range(max(1, int(math.ceil(duration * args.fps)))))
     images = frame_stream(timestamps, args.width, args.height, cues, character if character.exists() else None, args.frames_dir)
     ffmpeg_video(images, args.fps, args.width, args.height, (ROOT / args.output if not args.output.is_absolute() else args.output), args.audio, duration)

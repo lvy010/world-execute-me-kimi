@@ -54,14 +54,9 @@ python kimi_video.py preview --seconds 8 --fps 12
 python kimi_video.py render
 ```
 
-输出：
+输出 `out/kimi.mp4`：带音频、H.264/AAC、可直接播放的交付文件。
 
-```text
-out/kimi_master.mp4   # 逐帧渲染后的母版
-out/kimi.mp4          # 带音频、H.264/AAC、可直接播放的交付文件
-```
-
-默认渲染会把音频和画面裁切/补齐到 212 秒。想先用较低分辨率测试整条链路：
+默认渲染会把音频和画面裁切或补齐到 212 秒。想先用较低分辨率测试整条链路：
 
 ```sh
 python kimi_video.py render --width 640 --height 360 --fps 12 --output out/kimi_test.mp4
@@ -84,4 +79,3 @@ out/kimi.mp4（3:32）
 ## 权利与署名
 
 请只放入你有权使用的音乐、歌词和角色图。这个仓库只包含代码和程序生成的默认画面，不包含参考项目中的歌曲、歌词原文或第三方模型。
-
