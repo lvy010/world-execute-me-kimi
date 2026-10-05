@@ -10,12 +10,12 @@
 world-execute-me-kimi/input/song.mp3
 ```
 
-可选地再准备：
+工程已经内置一套来自 `dsh-whale-galgame` 的 Kimi 月色书卷立绘和书房背景，保存于 `assets/`。可选地再准备：
 
 - `input/lyrics.lrc`：同步歌词；
-- `input/kimi.png`：你希望使用的 Kimi 娘立绘，透明 PNG 最佳。
+- `input/kimi.png`：你希望替换内置立绘的 Kimi 娘立绘，透明 PNG 最佳。
 
-歌曲和角色图不随代码分发。没有角色图也没关系，工程内置了一个可运行的程序绘制角色。
+歌曲和用户自定义角色图不随代码分发。内置 Kimi 参考图的来源和许可见 [ASSET_CREDITS.md](ASSET_CREDITS.md)。
 
 ## macOS 一次性安装
 
@@ -78,4 +78,4 @@ out/kimi.mp4（3:32）
 
 ## 权利与署名
 
-请只放入你有权使用的音乐、歌词和角色图。这个仓库只包含代码和程序生成的默认画面，不包含参考项目中的歌曲、歌词原文或第三方模型。
+请只放入你有权使用的音乐、歌词和角色图。Kimi 参考图是非官方、AI 辅助的 Kimi 灵感美术，不代表 Moonshot AI 官方形象或背书。

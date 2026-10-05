@@ -2,7 +2,7 @@
 """Render a Kimi-themed, lyric-aware 3:32 music video.
 
 The renderer is intentionally deterministic: a frame is a pure function of
-its timestamp, the optional LRC file and the optional character PNG.  Frames
+its timestamp, the optional LRC file and the bundled or user-supplied character art. Frames
 are streamed to ffmpeg so a full render does not require thousands of PNGs on
 disk.
 """
@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parent
 CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
 INPUT = ROOT / "input"
 OUT = ROOT / "out"
+_BACKGROUND_CACHE: dict[tuple[str, int, int], Image.Image] = {}
 
 
 def font(size: int, bold: bool = False):
@@ -209,6 +210,35 @@ def draw_external_character(base: Image.Image, path: Path, t: float, intensity: 
     return True
 
 
+def draw_background_image(base: Image.Image, path: Path, box: tuple[int, int, int, int]):
+    """Place a darkened Kimi study backdrop inside the main viewport."""
+    if not path.exists():
+        return
+    x0, y0, x1, y1 = box
+    size = (max(1, x1 - x0), max(1, y1 - y0))
+    key = (str(path), *size)
+    image = _BACKGROUND_CACHE.get(key)
+    if image is None:
+        try:
+            source = Image.open(path).convert("RGBA")
+            source_ratio = source.width / source.height
+            target_ratio = size[0] / size[1]
+            if source_ratio > target_ratio:
+                crop_w = int(source.height * target_ratio)
+                left = (source.width - crop_w) // 2
+                source = source.crop((left, 0, left + crop_w, source.height))
+            else:
+                crop_h = int(source.width / target_ratio)
+                top = (source.height - crop_h) // 2
+                source = source.crop((0, top, source.width, top + crop_h))
+            image = source.resize(size, Image.Resampling.LANCZOS)
+            image = Image.alpha_composite(image, Image.new("RGBA", size, (8, 7, 30, 155)))
+            _BACKGROUND_CACHE[key] = image
+        except (OSError, ValueError):
+            return
+    base.alpha_composite(image, (x0, y0))
+
+
 def draw_glitch(draw, w, h, t, accent, intensity):
     rng = seeded(t, 44)
     if intensity < 0.08:
@@ -225,7 +255,7 @@ def draw_glitch(draw, w, h, t, accent, intensity):
             draw.line((0, y, w, y), fill=(255, 255, 255, 12), width=1)
 
 
-def render_frame(t: float, width: int, height: int, cues: list[tuple[float, str]], character: Path | None = None) -> Image.Image:
+def render_frame(t: float, width: int, height: int, cues: list[tuple[float, str]], character: Path | None = None, background: Path | None = None) -> Image.Image:
     name, cn, accent = chapter(t)
     intensity = glitch_level(t)
     pulse = 0.5 + 0.5 * math.sin(t * (5.0 + intensity * 5.0))
@@ -270,6 +300,8 @@ def render_frame(t: float, width: int, height: int, cues: list[tuple[float, str]
     vd.rounded_rectangle((vx0, vy0, vx1, vy1), radius=18, fill=(9, 8, 29, 120), outline=(*accent, 135), width=2)
     vd.line((vx0 + 20, vy1 - 62, vx1 - 20, vy1 - 62), fill=(*accent, 90), width=1)
     bg.alpha_composite(viewport)
+    if background:
+        draw_background_image(bg, background, (vx0 + 2, vy0 + 2, vx1 - 2, vy1 - 2))
     character_ok = character and character.exists() and draw_external_character(bg, character, t, intensity)
     if not character_ok:
         draw_builtin_kimi(bg, t, accent, intensity)
@@ -304,9 +336,9 @@ def audio_duration(path: Path) -> float | None:
         return None
 
 
-def frame_stream(timestamps: Iterable[float], width: int, height: int, cues, character, destination=None):
+def frame_stream(timestamps: Iterable[float], width: int, height: int, cues, character, background, destination=None):
     for t in timestamps:
-        image = render_frame(t, width, height, cues, character)
+        image = render_frame(t, width, height, cues, character, background)
         if destination:
             destination.mkdir(parents=True, exist_ok=True)
             image.save(destination / f"frame_{int(round(t * CONFIG['fps'])):06d}.png")
@@ -378,6 +410,7 @@ def main():
     args = make_parser().parse_args()
     cues = parse_lrc(ROOT / CONFIG["lyrics"])
     character = ROOT / CONFIG["character_image"]
+    background = ROOT / CONFIG["background_image"] if CONFIG.get("background_image") else None
     if args.command == "check":
         check()
         return
@@ -385,7 +418,7 @@ def main():
         if args.width < 480 or args.height < 270:
             raise SystemExit("当前布局的最小输出尺寸是 480x270；请提高 --width/--height。")
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        render_frame(max(0.0, min(CONFIG["duration"], args.time)), args.width, args.height, cues, character if character.exists() else None).save(args.output)
+        render_frame(max(0.0, min(CONFIG["duration"], args.time)), args.width, args.height, cues, character if character.exists() else None, background if background and background.exists() else None).save(args.output)
         print(args.output)
         return
     duration = float(args.seconds if args.seconds is not None else CONFIG["duration"])
@@ -398,7 +431,7 @@ def main():
     if args.command == "render" and not args.audio.exists():
         raise SystemExit(f"找不到歌曲：{args.audio}\n请把你有权使用的 MP3 放到 input/song.mp3，或使用 --audio 指定文件。")
     timestamps = (i / args.fps for i in range(max(1, int(math.ceil(duration * args.fps)))))
-    images = frame_stream(timestamps, args.width, args.height, cues, character if character.exists() else None, args.frames_dir)
+    images = frame_stream(timestamps, args.width, args.height, cues, character if character.exists() else None, background if background and background.exists() else None, args.frames_dir)
     ffmpeg_video(images, args.fps, args.width, args.height, (ROOT / args.output if not args.output.is_absolute() else args.output), args.audio, duration)
     print(f"done: {args.output} ({duration:.3f}s, {args.width}x{args.height}@{args.fps})")
 

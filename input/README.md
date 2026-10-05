@@ -19,5 +19,4 @@
 
 ## 可选：`kimi.png`
 
-如果你有希望使用的 Kimi 娘立绘，放入一张 PNG（建议透明背景，最长边 1200 像素）。没有这张图时，工程会使用内置的程序绘制角色，不会阻塞预览或出片。
-
+如果你想替换工程内置的 Kimi 立绘，放入一张 PNG（建议透明背景，最长边 1200 像素），然后把 `config.json` 的 `character_image` 改成 `input/kimi.png`。默认情况下使用 `assets/kimi-lunar-scroll-navigator-v5.webp`，没有外部图片时才回退到程序绘制角色。
