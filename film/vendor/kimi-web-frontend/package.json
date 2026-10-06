@@ -1,0 +1,60 @@
+{
+  "name": "@moonshot-ai/kimi-web-frontend",
+  "description": "Web application entry: vite build over the @moonshot-ai/kimi-client-web shell library; dist/ served by apps/cli's kimi web",
+  "version": "0.1.5-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonshot-ai/moonshot-harness.git",
+    "directory": "apps/web"
+  },
+  "type": "module",
+  "exports": {
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "!dist/preview.html",
+    "!dist/preview"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "~18.3.1",
+    "@types/react-dom": "~18.3.0",
+    "@types/ws": "8.18.1",
+    "@vitejs/plugin-react": "^4.0.0",
+    "http-server": "^14.1.1",
+    "fflate": "^0.8.2",
+    "playwright": "^1.49.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^6.0.3",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.8",
+    "ws": "8.21.0",
+    "@moonshot-ai/cordis-plugin-group": "^1.0.2",
+    "@moonshot-ai/kimi-client-modules": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-client-store": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-client-ui-dockkit": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-client-ui-primitives": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-client-ui-slots": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-client-web": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-pwsh-local": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-experimental-webworker-packer": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-experimental-webworker-runtime": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-launch-environment": "^0.1.5-rc.1",
+    "@moonshot-ai/kimi-cmdline": "^0.1.5-rc.1"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "watch": "vite build --watch --no-emptyOutDir",
+    "build:preview": "pnpm --filter @moonshot-ai/kimi-experimental-webworker-runtime exec tsdown && pnpm --filter @moonshot-ai/kimi-experimental-webworker-packer exec tsdown && vite build && kimi-pack-vfs-image --out dist/preview/vfs-image.tar.gz",
+    "serve:preview": "http-server dist -a 0.0.0.0 -p 4173 -c-1"
+  }
+}
