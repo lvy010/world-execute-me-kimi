@@ -1,2 +1,5 @@
-Pillow>=10.0
-
+# Python 3.12 or newer (on 3.13+ build.py puts film/kimi_web_frontend_20260927/gpu_shim on PYTHONPATH for audioop)
+pillow>=10
+numpy>=1.26
+# optional, for `python build.py render --gpu`: a torch build with CUDA (bloom, trail and scanlines on the GPU)
+# torch

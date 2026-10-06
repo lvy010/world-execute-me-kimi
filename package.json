@@ -1,0 +1,9 @@
+{
+  "name": "world-execute-me-kimi",
+  "private": true,
+  "license": "MIT",
+  "description": "Screenshots the per-frame kimi window pages (film/kimi_web_frontend_20260927/seg_shot.mjs) with Playwright.",
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}
