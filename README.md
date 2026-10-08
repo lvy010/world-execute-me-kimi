@@ -29,6 +29,8 @@
   </a>
 </p>
 
+超炫酷的成片(´･ω･`)^ [bilibili](https://www.bilibili.com/video/BV1A6HC6HEij/?share_source=copy_web)
+
 <p align="left">
   <img src="data/png/1006.jpg" alt="1006" width="15%" />
   <img src="data/png/1006kimi.jpg" alt="1006 Kimi" width="49%" />
